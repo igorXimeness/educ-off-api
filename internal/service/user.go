@@ -1,53 +1,35 @@
-//1) conter a lógica de negócios para o cadastro e login
-//2) validar os usuários
-//3) criptografar senhas
-//4) verificar credenciais
-
 package service
 
 import (
-	"context"
-	"errors"
-
-	"github.com/igorXimeness/educ-off-api/internal/model" // Ajuste para o caminho correto do seu pacote model
-	"golang.org/x/crypto/bcrypt"
+    "context"
+    "errors" // Importar o pacote de erros
+    "database/sql" // Importar o pacote SQL
+    "github.com/igorXimeness/educ-off-api/internal/model"
+    "github.com/igorXimeness/educ-off-api/internal/dao"
+    "golang.org/x/crypto/bcrypt"
 )
 
-// UserService representa o serviço que lida com a lógica de negócios para usuários
 type UserService struct {
-   userRepository UserRepository 
+    userDAO dao.UserDAO
 }
 
-type UserRepository interface{ 
-	Signup(context.Context, model.User)
-	Login(context.Context, model.User)
-}
-
-
-// NewUserService cria uma nova instância de UserService
-func NewUserService() *UserService {
+func NewUserService(userDAO dao.UserDAO) *UserService {
     return &UserService{
-        // Inicialize aqui os campos necessários
+        userDAO: userDAO,
     }
 }
 
-// Signup lida com o cadastro de novos usuários
-func (s *UserService) Signup(user *model.User) error {
-    // 1) Validar os usuários
-    if user.Email == "" || user.Password == "" {
-        return errors.New("email and password are required")
-    }
-
-    // 2) Criptografar senhas
-    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-    if err != nil {
+func (s *UserService) Signup(ctx context.Context, user model.User) error {
+    // Verificar se o e-mail já está em uso
+    _, err := s.userDAO.FindUserByEmail(ctx, user.Email)
+    if err == nil {
+        return errors.New("email already exists")
+    } else if err != nil && err != sql.ErrNoRows {
         return err
     }
-    user.Password = string(hashedPassword)
-
-    // 3) Salvar o usuário no banco de dados
-    // Aqui você chamaria o método do seu repositório DAO para salvar o usuário
-    // Exemplo: err = s.userRepo.CreateUser(user)
+    
+    // Criar o usuário
+    err = s.userDAO.CreateUser(ctx, user)
     if err != nil {
         return err
     }
@@ -55,20 +37,18 @@ func (s *UserService) Signup(user *model.User) error {
     return nil
 }
 
-// Login verifica as credenciais do usuário
-func (s *UserService) Login(email, password string) error {
-    // 1) Verificar se o usuário existe
-    // Exemplo: user, err := s.userRepo.GetUserByEmail(email)
+func (s *UserService) Login(ctx context.Context, email, password string) (*model.User, error) {
+    // Encontrar o usuário pelo e-mail
+    user, err := s.userDAO.FindUserByEmail(ctx, email)
     if err != nil {
-        return err
+        return nil, err
     }
-
-    // 2) Verificar credenciais
+    
+    // Verificar a senha
     err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
     if err != nil {
-        // Senha não confere
-        return errors.New("invalid credentials")
+        return nil, err
     }
 
-    return nil
+    return user, nil
 }

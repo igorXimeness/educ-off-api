@@ -1,59 +1,53 @@
-//1) definir os handlers para as rotas de login e cadastro
-//2) extrair dados da requisição
-//3) chamar os metodos correspondentes a camada de serviço
-
 package api
 
 import (
-	"net/http"
+    "net/http"
 
-	"github.com/igorXimeness/educ-off-api/internal/model"
-	"github.com/igorXimeness/educ-off-api/internal/service"
-	"github.com/labstack/echo/v4"
-	//"net/http"
+    "github.com/igorXimeness/educ-off-api/internal/model"
+    "github.com/igorXimeness/educ-off-api/internal/service"
+    "github.com/labstack/echo/v4"
 )
 
-
 type UserAPI struct {
-	userService service.UserService
+    userService service.UserService
 }
 
-//é como se fosse um construtor de userApi
-func newUserAPI(userService service.UserService) *UserAPI {
-	return &UserAPI{
-		userService: userService,
-	}
+func NewUserAPI(userService service.UserService) *UserAPI {
+    return &UserAPI{
+        userService: userService,
+    }
 }
 
-func (api UserAPI) Register(e *echo.Echo){
-	e.POST("/signup", api.signup)
-	//e.POST("/login", api.login)
+func (api *UserAPI) Register(e *echo.Echo) {
+    e.POST("/signup", api.signup)
+    e.POST("/login", api.login)
 }
 
-func (api UserAPI) signup(c echo.Context) error {
-	user := model.User{}
+func (api *UserAPI) signup(c echo.Context) error {
+    user := new(model.User)
+    if err := c.Bind(user); err != nil {
+        return c.JSON(http.StatusBadRequest, map[string]interface{}{"error": "invalid request"})
+    }
+    
+    err := api.userService.Signup(c.Request().Context(), *user)
+    if err != nil {
+        return c.JSON(http.StatusInternalServerError, map[string]interface{}{"error": "failed to create user"})
+    }
 
-	if err := c.Bind(&user); err != nil {
-		return c.JSON(http.StatusBadRequest, 
-		echo.Map{"error": "invalid data user"})
-	}
-	
-
-	err := api.userService.signup(&user)
-
-	if err != nil{
-		return c.JSON(http.StatusInternalServerError, 
-		echo.Map{"error" : "Failed to create user"})
-	} 
-
-	return c.JSON(http.StatusCreated, user )
-
+    return c.JSON(http.StatusCreated, user)
 }
 
+func (api *UserAPI) login(c echo.Context) error {
 
-/*
-func (api UserAPI) login(e echo.Echo) error{
+	form := new(model.LoginForm)
+    if err := c.Bind(form); err != nil {
+        return c.JSON(http.StatusBadRequest, map[string]interface{}{"error": "invalid request"})
+    }
 
+    user, err := api.userService.Login(c.Request().Context(), form.Email, form.Password)
+    if err != nil {
+        return c.JSON(http.StatusUnauthorized, map[string]interface{}{"error": "invalid credentials"})
+    }
+
+    return c.JSON(http.StatusOK, user)
 }
-
-*/
