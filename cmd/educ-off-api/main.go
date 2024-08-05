@@ -1,45 +1,45 @@
 package main
 
 import (
-    "fmt"
-    "net/http"
+	"fmt"
 
-    "github.com/labstack/echo/v4"
-    "github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
-    "github.com/igorXimeness/educ-off-api/internal/api"
-    "github.com/igorXimeness/educ-off-api/internal/dao"
-    "github.com/igorXimeness/educ-off-api/internal/service"
+	"github.com/igorXimeness/educ-off-api/internal/api"
+	"github.com/igorXimeness/educ-off-api/internal/dao"
+	"github.com/igorXimeness/educ-off-api/internal/service"
 )
+
 func main() {
 
-    db, err := dao.ConnectDB()
-    if err != nil{
-        fmt.Println("Failed to connect to database", err)
-    }
-    defer db.Close()
+	db, err := dao.ConnectDB()
+	if err != nil {
+		fmt.Println("Failed to connect to database", err)
+	}
+	defer db.Close()
 
-    //inicializando DAO e service 
+	//inicializando DAO e service
 
-    userDao     := dao.NewUserDAO(db)
-    userService := service.NewUserService(*userDao) 
+	userDao := dao.NewUserDAO(db)
+	userService := service.NewUserService(*userDao) //
 
-    //inicializando ECHO
-    e := echo.New()
+	//injecao de dependecias
 
-    //Middleware
-    e.Use(middleware.Logger())
-    e.Use(middleware.Recover())
+	//inicializando ECHO
+	e := echo.New()
 
-    //defininado api(rotas)
-    userApi := api.NewUserAPI(*userService)
-    userApi.Register(e)
+	//Middleware
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 
-    port := ":8080"
+	//defininado api(rotas)
+	userApi := api.NewUserAPI(*userService)
+	userApi.Register(e)
 
-    fmt.Println("Server is running at port ", port)
-    e.Start(port)
+	port := ":8080"
 
-
+	fmt.Println("Server is running at port ", port)
+	e.Start(port)
 
 }

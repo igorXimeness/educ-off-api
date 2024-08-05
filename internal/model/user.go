@@ -13,6 +13,10 @@ type User struct {
 }
 
 
+
+
+// UUID = 314fa231
+// ID = 312
 type LoginForm struct {
 	Email    string `json:"email" form:"email" query:"email"`
 	Password string `json:"password" form:"password" query:"password"`

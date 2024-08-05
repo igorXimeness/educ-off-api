@@ -14,6 +14,8 @@ import (
 //Ao retornar um ponteiro, a função ConnectDB() permite que o chamador
 //utilize o mesmo pool de conexões em várias partes do código,
 // compartilhando efetivamente o mesmo conjunto de conexões.
+
+//windows, DB_USER = "Agatha"
 func ConnectDB() (*pgxpool.Pool, error) {
     dbUser := os.Getenv("DB_USER")
     dbPassword := os.Getenv("DB_PASSWORD")
@@ -25,3 +27,10 @@ func ConnectDB() (*pgxpool.Pool, error) {
 
     return pgxpool.Connect(context.Background(), dbURL)
 }
+
+
+// serv_cotuca = u22311 (servidor linux que hospeda o banco de dados)  
+
+// docker = vou criar um sistema linux isolado dentro do meu sistema windows
+// BD = hospedar dentro do sistema linux 
+
