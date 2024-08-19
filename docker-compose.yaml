@@ -7,6 +7,9 @@ services:
       POSTGRES_DB: teste
     ports:
       - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data # Persistência dos dados do banco
+
   app:
     build: .
     ports:
@@ -20,5 +23,7 @@ services:
       DB_PORT: "5432"
       DB_NAME: "teste"
     volumes:
-      - .:/app
+      - .:/app # Volume para o código do app
 
+volumes:
+  pgdata:
