@@ -1,10 +1,12 @@
 package main
 
 import (
-	"fmt"
+	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
+	"fmt"
 
 	"github.com/igorXimeness/educ-off-api/internal/api"
 	"github.com/igorXimeness/educ-off-api/internal/dao"
@@ -12,34 +14,40 @@ import (
 )
 
 func main() {
+    // Cria um contexto raiz com cancelamento
+ 
 
-	db, err := dao.ConnectDB()
-	if err != nil {
-		fmt.Println("Failed to connect to database", err)
-	}
-	defer db.Close()
+    // Conexão com o banco de dados
+    db, err := dao.ConnectDB()
+    if err != nil {
+        fmt.Printf("Failed to connect to database: %v\n", err)
+        return
+    }
+    defer db.Close()
 
-	//inicializando DAO e service
+    // Inicializando DAO e Service com o contexto
+    userDao := dao.NewUserDAO(db)
+    userService := service.NewUserService(userDao) 
 
-	userDao := dao.NewUserDAO(db)
-	userService := service.NewUserService(*userDao) //
+    // Inicializando Echo
+    server := echo.New()
 
-	//injecao de dependecias
+    // Middlewares
+    server.Use(middleware.Logger())
+    server.Use(middleware.Recover())
 
-	//inicializando ECHO
-	e := echo.New()
+    // Definindo API (rotas)
+    userApi := api.NewUserAPI(userService)
+    userApi.Register(*server)
 
-	//Middleware
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+    // Definindo porta (pode ser configurável via variável de ambiente)
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080"
+    }
 
-	//defininado api(rotas)
-	userApi := api.NewUserAPI(*userService)
-	userApi.Register(e)
-
-	port := ":8080"
-
-	fmt.Println("Server is running at port ", port)
-	e.Start(port)
-
+    fmt.Printf("Server is running at port %s\n", port)
+    if err := server.Start(":" + port); err != nil {
+        fmt.Printf("Failed to start server: %v\n", err)
+    }
 }

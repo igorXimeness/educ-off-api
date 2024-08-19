@@ -1,25 +1,19 @@
-FROM golang:1.22-alpine 
+# Use a imagem base do Go
+FROM golang:1.22-alpine
 
-WORKDIR /app 
+# Defina o diretório de trabalho dentro do contêiner
+WORKDIR /app
 
+# Copie os arquivos de dependências do Go
 COPY go.mod ./
+COPY go.sum ./
+RUN go mod download
 
-COPY go.sum .
-
-RUN go mod download 
-
+# Copie o restante dos arquivos do projeto
 COPY . .
 
-RUN go build -o main ./cmd/educ-off-api
-
+# Exponha a porta que o aplicativo usará
 EXPOSE 8080
 
-CMD ["./app/cmd/main"]
-
-
-
-
-# [ alpine(linux) = [golang, pasta(app)   ]  ]
-# cd ..  
-
-
+# Defina o comando de inicialização do contêiner
+CMD ["go", "run", "cmd/educ-off-api/main.go"]

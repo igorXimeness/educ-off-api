@@ -1,53 +1,64 @@
 package service
 
 import (
-    "context"
-    "errors" // Importar o pacote de erros
-    "database/sql" // Importar o pacote SQL
-    "github.com/igorXimeness/educ-off-api/internal/model"
-    "github.com/igorXimeness/educ-off-api/internal/dao"
-    "golang.org/x/crypto/bcrypt"
+	"context"
+	//"database/sql" // Importar o pacote SQL
+	"errors"       // Importar o pacote de erros
+	"fmt"
+
+	"github.com/google/uuid"
+	"github.com/igorXimeness/educ-off-api/internal/model"
+	//"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
-    userDAO dao.UserDAO
+    userRepository UserRepository
 }
 
-func NewUserService(userDAO dao.UserDAO) *UserService {
-    return &UserService{
-        userDAO: userDAO,
+type UserRepository interface {
+    Login(context.Context, model.User) error 
+    CreateUser(context.Context, model.User) error 
+    FindUserByEmail(context.Context, string) (model.User, error)   
+}
+
+
+func NewUserService(userRepository UserRepository ) UserService {
+    return UserService{
+        userRepository: userRepository,
     }
 }
 
-func (s *UserService) Signup(ctx context.Context, user model.User) error {
+func (s UserService) Signup(ctx context.Context, user model.User) error {
     // Verificar se o e-mail já está em uso
-    _, err := s.userDAO.FindUserByEmail(ctx, user.Email)
+    _, err := s.userRepository.FindUserByEmail(ctx, user.Email)
     if err == nil {
         return errors.New("email already exists")
-    } else if err != nil && err != sql.ErrNoRows {
-        return err
     }
     
+    // Gerar UUID no código caso seja necessário
+    user.UserID = uuid.New()
+
     // Criar o usuário
-    err = s.userDAO.CreateUser(ctx, user)
+    err = s.userRepository.CreateUser(ctx, user)
     if err != nil {
+        fmt.Printf("Error in Signup: %v\n", err)
         return err
     }
 
     return nil
 }
 
-func (s *UserService) Login(ctx context.Context, email, password string) (*model.User, error) {
+
+func (s UserService) Login(ctx context.Context, email, password string) (model.User, error) {
     // Encontrar o usuário pelo e-mail
-    user, err := s.userDAO.FindUserByEmail(ctx, email)
+    user, err := s.userRepository.FindUserByEmail(ctx, email)
     if err != nil {
-        return nil, err
+        return model.User{}, err
     }
-    
-    // Verificar a senha
-    err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-    if err != nil {
-        return nil, err
+
+    // Verificar se a senha corresponde
+    if user.Password != password {
+        return model.User{}, fmt.Errorf("invalid password")
     }
 
     return user, nil
