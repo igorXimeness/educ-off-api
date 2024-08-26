@@ -21,6 +21,7 @@ func NewUserDAO(db *pgxpool.Pool) UserDAO {
 		db: *db,
 	}
 }
+
 var log = logrus.New()
 
 func (dao UserDAO) CreateUser(ctx context.Context, user model.User) error {
@@ -34,7 +35,6 @@ func (dao UserDAO) CreateUser(ctx context.Context, user model.User) error {
     }
     return nil
 }
-
 
 func (dao UserDAO) FindUserByEmail(ctx context.Context, email string) (model.User, error) {
 	user := model.User{}
