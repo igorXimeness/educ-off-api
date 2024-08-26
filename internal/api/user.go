@@ -21,14 +21,16 @@ type UserAPI struct {
 }
 
 func NewUserAPI(userService service.UserService) UserAPI {
-    return UserAPI{
+    return UserAPI {
         userService: userService,
     }
 }
 
-func (api UserAPI) Register(e echo.Echo) {
-    e.POST("/signup", api.signup)
-    e.POST("/login", api.login)
+func (api UserAPI) Register(e *echo.Echo) {
+    v1 := e.Group("v1")
+
+    v1.POST("/signup", api.signup)
+    v1.POST("/login", api.login)
 }
 
 // 1) preencher os campos para cadastrar 
@@ -42,23 +44,18 @@ func (api UserAPI) signup(c echo.Context) error {
         return c.JSON(http.StatusBadRequest, map[string]interface{}{"error": "invalid request"})
     }
 
-    // Verificações adicionais
     if user.Email == "" || user.Password == "" || user.FirstName == "" || user.LastName == "" {
         return c.JSON(http.StatusBadRequest, map[string]interface{}{"error": "missing required fields"})
     }
 
-    // Verificar se o nome é válido (um exemplo simples de validação de nome)
     if len(user.FirstName) < 2 || len(user.LastName) < 2 {
         return c.JSON(http.StatusBadRequest, map[string]interface{}{"error": "invalid name"})
     }
 
-    // Chamar o serviço de Signup
     err := api.userService.Signup(c.Request().Context(), user)
     if err != nil {
-        // Logar o erro detalhado
         log.Printf("Error during user signup: %v", err)
         
-        // Retornar o erro detalhado
         return c.JSON(http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
     }
 

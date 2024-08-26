@@ -14,10 +14,7 @@ type UserDAO struct {
 	db pgxpool.Pool
 }
 
-// Signup implements service.UserRepository.
-func (UserDAO) Signup(context.Context, model.User) error {
-	panic("unimplemented")
-}
+
 
 func NewUserDAO(db *pgxpool.Pool) UserDAO {
 	return UserDAO{
@@ -37,6 +34,8 @@ func (dao UserDAO) CreateUser(ctx context.Context, user model.User) error {
     }
     return nil
 }
+
+
 func (dao UserDAO) FindUserByEmail(ctx context.Context, email string) (model.User, error) {
 	user := model.User{}
 	err := dao.db.QueryRow(ctx, "SELECT email, password FROM users WHERE email = $1", email).Scan(&user.Email, &user.Password)
@@ -45,8 +44,9 @@ func (dao UserDAO) FindUserByEmail(ctx context.Context, email string) (model.Use
 	}
 	return user, nil
 }
+
 func (dao UserDAO) Login(ctx context.Context, user model.User) error {
-    // Encontrar o usuário pelo e-mail
+
     storedUser, err := dao.FindUserByEmail(ctx, user.Email)
     if err != nil {
         return err
