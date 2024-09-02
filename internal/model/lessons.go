@@ -2,6 +2,6 @@ package model
 
 type Lessons struct {
 	LessonID int    `json:"lesson_id"`
-	ModuleID int    `json:"module_id"`
+	ModulesID int    `json:"modules_id"`
 	Title    string `json:"title"`
 }
