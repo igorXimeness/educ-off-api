@@ -1,17 +1,18 @@
 package service
+
 import (
 	"context"
-	"errors"       
 	"github.com/igorXimeness/educ-off-api/internal/model"
-
 )
+
 type SubjectService struct {
 	userRepository SubjectRepository
 }
 
 type SubjectRepository interface {
-	FetchModules(context.Context, string) error 
-	FetchSubjects(context.Context) error 
+	FetchModules(context.Context, string) ([]model.Modules, error)  
+	FetchSubjects(context.Context) ([]model.Subject, error) 
+	FinishModule(context.Context, string) error 
 }
 
 func NewSubjectService(userRepository SubjectRepository) SubjectService {
@@ -21,11 +22,15 @@ func NewSubjectService(userRepository SubjectRepository) SubjectService {
 }
 
 
-func FetchSubjects(context ctx) error {
-
+func(s SubjectService) FetchSubjects(ctx context.Context) ([]model.Subject, error) {
+	return s.userRepository.FetchSubjects(ctx)
 }
 
-func FetchModules(context ctx, subject string) error {
-
+func (s SubjectService) FetchModules(ctx context.Context, subject string) ([]model.Modules, error) {
+    return s.userRepository.FetchModules(ctx, subject)
 }
 
+
+func (s SubjectService) FinishModule(ctx context.Context, moduleID string) error {
+	return s.userRepository.FinishModule(ctx, moduleID)
+}

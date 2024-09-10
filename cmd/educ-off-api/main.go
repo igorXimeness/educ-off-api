@@ -25,9 +25,15 @@ func main() {
     }
     defer db.Close()
 
-    // Inicializando DAO e Service com o contexto
+    // Inicializando DAO e Service com o context
     userDao := dao.NewUserDAO(db)
+    subjectDAO := dao.NewSubjectDAO(db)
+    lessonDAO := dao.NewLessonDAO(db)
+
+
     userService := service.NewUserService(userDao) 
+    lessonService := service.NewLessonService(lessonDAO)
+    subjectService := service.NewSubjectService(subjectDAO)
 
     // Inicializando Echo
     server := echo.New()
@@ -38,9 +44,14 @@ func main() {
 
     // Definindo API (rotas)
     userApi := api.NewUserAPI(userService)
-    userApi.Register(*server)
+    userApi.Register(*&server)
 
-    // Definindo porta (pode ser configurável via variável de ambiente)
+    subjectApi := api.NewSubjectAPI(subjectService)
+    subjectApi.Register(*&server)
+
+    lessonApi := api.NewLessonAPI(lessonService)
+    lessonApi.Register(*&server)
+
     port := os.Getenv("PORT")
     if port == "" {
         port = "8080"
