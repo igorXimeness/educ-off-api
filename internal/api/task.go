@@ -36,7 +36,12 @@ func (api TaskAPI) FetchTasks(c echo.Context) error {
 func (api TaskAPI) CreateTask(c echo.Context) error {
 	var task model.Task
 	if err := c.Bind(&task); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{"error": err})
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{"error": err.Error()})
+	}
+
+	// Verifica se o campo date está presente
+	if task.Date == "" {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{"error": "Date is required"})
 	}
 
 	err := api.taskService.CreateTask(c.Request().Context(), task)

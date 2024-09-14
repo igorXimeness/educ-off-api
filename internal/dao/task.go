@@ -57,6 +57,7 @@ func (dao TaskDao) CreateTask(ctx context.Context, task model.Task) error {
 }
 
 
+
 func (dao TaskDao) UpdateTask(ctx context.Context, taskID string, task model.Task) error {
 	_, err := dao.db.Exec(ctx, "UPDATE tasks SET status = $1 WHERE task_id = $2", task.Status, taskID)
 	if err != nil {
