@@ -34,6 +34,15 @@ func main() {
 	// Inicializando Echo
 	server := echo.New()
 
+    // Configurando o middleware CORS
+    server.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+        AllowOrigins: []string{"http://127.0.0.1:5500"}, // Permite o domínio específico
+        AllowMethods: []string{"GET", "POST", "DELETE", "PUT"}, // Métodos permitidos
+        AllowHeaders: []string{"Content-Type", "Authorization"}, // Cabeçalhos permitidos
+        AllowCredentials: true, // Permite credenciais
+    }))
+
+
 	// Middlewares
 	server.Use(middleware.Logger())
 	server.Use(middleware.Recover())

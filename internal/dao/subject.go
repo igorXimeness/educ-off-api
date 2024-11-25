@@ -20,6 +20,55 @@ func NewSubjectDAO(subjectDao *pgxpool.Pool) SubjectDao {
 	}
 }
 
+
+func (dao SubjectDao) DeleteModule(ctx context.Context, moduleID string) error {
+	// Excluir as lições associadas ao módulo
+	_, err := dao.subjectDao.Exec(ctx, "DELETE FROM lesson WHERE module_id = $1", moduleID)
+	if err != nil {
+		return fmt.Errorf("failed to delete lessons associated with module: %w", err)
+	}
+
+	// Excluir o módulo
+	_, err = dao.subjectDao.Exec(ctx, "DELETE FROM modules WHERE module_id = $1", moduleID)
+	if err != nil {
+		return fmt.Errorf("failed to delete module: %w", err)
+	}
+
+	return nil
+}
+
+
+func (dao SubjectDao) CreateModule(ctx context.Context, module model.Modules) error {
+    query := `
+        INSERT INTO modules (module_name, subject_id, done)
+        VALUES ($1, $2, $3)
+    `
+    _, err := dao.subjectDao.Exec(ctx, query, module.ModuleName, module.SubjectID, module.Done)
+    if err != nil {
+        return fmt.Errorf("failed to create module: %w", err)
+    }
+    return nil
+}
+
+
+func (dao SubjectDao) DeleteSubject(ctx context.Context, subjectID string) error {
+    _, err := dao.subjectDao.Exec(ctx, "DELETE FROM subjects WHERE subject_id = $1", subjectID)
+    if err != nil {
+        return fmt.Errorf("failed to delete subject with ID %s: %w", subjectID, err)
+    }
+    return nil
+}
+
+
+func (dao SubjectDao) CreateSubject(ctx context.Context, subject model.Subject) error {
+	_, err := dao.subjectDao.Exec(ctx, "INSERT INTO subjects (name) VALUES ($1)", subject.Name)
+	if err != nil {
+		return fmt.Errorf("failed to insert subject: %w", err)
+	}
+	return nil
+}
+
+
 func (dao SubjectDao) FetchModules(ctx context.Context, subjectName string) ([]model.Modules, error) {
 	var subjectID int
 	err := dao.subjectDao.QueryRow(ctx, "SELECT subject_id FROM subjects WHERE name = $1", subjectName).Scan(&subjectID)

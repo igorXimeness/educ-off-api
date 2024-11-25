@@ -40,3 +40,62 @@ func (dao LessonDAO) FetchLesson(ctx context.Context, moduleName string) (model.
 
     return lesson, nil
 }
+
+
+func (dao LessonDAO) CreateLesson(ctx context.Context, lesson model.Lesson) (int, error) {
+	// Insere a lição no banco de dados
+	var lessonID int
+	err := dao.db.QueryRow(ctx, `
+		INSERT INTO lesson (module_id, title, content)
+		VALUES ($1, $2, $3)
+		RETURNING lesson_id
+	`, lesson.ModuleID, lesson.Title, lesson.Content).Scan(&lessonID)
+
+	if err != nil {
+		return 0, fmt.Errorf("failed to create lesson: %w", err)
+	}
+
+	return lessonID, nil
+}
+
+
+func (dao LessonDAO) DeleteLesson(ctx context.Context, lessonID string) error {
+	// Excluir as questões associadas a essa lição
+	_, err := dao.db.Exec(ctx, `DELETE FROM question WHERE lessonId = $1`, lessonID)
+	if err != nil {
+		return fmt.Errorf("failed to delete questions associated with the lesson: %w", err)
+	}
+
+	// Agora, excluir a lição
+	_, err = dao.db.Exec(ctx, `DELETE FROM lesson WHERE lesson_id = $1`, lessonID)
+	if err != nil {
+		return fmt.Errorf("failed to delete lesson: %w", err)
+	}
+
+	return nil
+}
+
+
+func (dao LessonDAO) CreateQuestion(ctx context.Context, question model.Question) (int, error) {
+    var questionID int
+
+    // Executando a consulta de inserção da questão com as opções e a resposta correta
+    err := dao.db.QueryRow(ctx, `
+        INSERT INTO question (lessonId, questionText, optionA, optionB, optionC, optionD, rightOption)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING question_id`,
+        question.LessonID, 
+        question.QuestionText,
+        question.OptionA, 
+        question.OptionB, 
+        question.OptionC, 
+        question.OptionD, 
+        question.RightOption).
+        Scan(&questionID)
+
+    if err != nil {
+        return 0, fmt.Errorf("failed to insert question: %w", err)
+    }
+
+    return questionID, nil
+}
