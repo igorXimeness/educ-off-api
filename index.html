@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Materiais</title>
+    <link rel="stylesheet" href="styles.css"> 
+</head>
+<body>
+    <h1>Gestão de Materiais, Módulos e Lições</h1>
+
+    <!-- Seção para criar matéria -->
+    <section>
+        <h2>Criar Matéria</h2>
+        <form id="createSubjectForm">
+            <label for="subjectName">Nome da Matéria:</label>
+            <input type="text" id="subjectName" name="subjectName" placeholder="Digite o nome da matéria" required>
+            <button type="submit">Criar Matéria</button>
+        </form>
+    </section>
+
+    <!-- Seção para criar módulo -->
+    <section>
+        <h2>Criar Módulo</h2>
+        <form id="createModuleForm">
+            <label for="moduleName">Nome do Módulo:</label>
+            <input type="text" id="moduleName" name="moduleName" placeholder="Digite o nome do módulo" required>
+
+            <label for="subjectForModule">Matéria:</label>
+            <input type="text" id="subjectForModule" name="subjectForModule" placeholder="Digite o nome da matéria" required>
+            
+            <button type="submit">Criar Módulo</button>
+        </form>
+    </section>
+
+    <!-- Seção para criar lição -->
+    <section>
+        <h2>Criar Lição</h2>
+        <form id="createLessonForm">
+            <label for="lessonTitle">Título da Lição:</label>
+            <input type="text" id="lessonTitle" name="lessonTitle" placeholder="Digite o título da lição" required>
+
+            <label for="lessonContent">Conteúdo da Lição:</label>
+            <textarea id="lessonContent" name="lessonContent" placeholder="Digite o conteúdo da lição" required></textarea>
+
+            <label for="moduleForLesson">Módulo:</label>
+            <input type="text" id="moduleForLesson" name="moduleForLesson" placeholder="Digite o nome do módulo" required>
+
+            <label for="subjectForLesson">Matéria:</label>
+            <input type="text" id="subjectForLesson" name="subjectForLesson" placeholder="Digite o nome da matéria" required>
+            
+            <button type="submit">Criar Lição</button>
+        </form>
+    </section>
+
+   
+    <script src="scripts.js"></script> 
+</body>
+</html>
