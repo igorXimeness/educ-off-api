@@ -42,6 +42,42 @@ func (dao LessonDAO) FetchLesson(ctx context.Context, moduleName string) (model.
 }
 
 
+func (dao LessonDAO) FetchQuestionsByLessonID(ctx context.Context, lessonID int) ([]model.Question, error) {
+    var questions []model.Question
+
+    rows, err := dao.db.Query(ctx, `
+        SELECT question_id, lessonId, questionText, optionA, optionB, optionC, optionD, rightOption
+        FROM question
+        WHERE lessonId = $1
+    `, lessonID)
+    if err != nil {
+        return nil, fmt.Errorf("failed to fetch questions for lesson_id %d: %w", lessonID, err)
+    }
+    defer rows.Close()
+
+    // Iterar sobre os resultados
+    for rows.Next() {
+        var question model.Question
+        err := rows.Scan(
+            &question.QuestionID,
+            &question.LessonID,
+            &question.QuestionText,
+            &question.OptionA,
+            &question.OptionB,
+            &question.OptionC,
+            &question.OptionD,
+            &question.RightOption,
+        )
+        if err != nil {
+            return nil, fmt.Errorf("failed to scan question: %w", err)
+        }
+        questions = append(questions, question)
+    }
+
+    return questions, nil
+}
+
+
 func (dao LessonDAO) CreateLesson(ctx context.Context, lesson model.Lesson) (int, error) {
 	// Insere a lição no banco de dados
 	var lessonID int

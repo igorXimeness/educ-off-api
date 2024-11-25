@@ -36,8 +36,29 @@ func (api LessonAPI) Register(e *echo.Echo) {
     v1.POST("/modules/:module_name/lesson", api.CreateLesson) 
     v1.DELETE("/lessons/:lesson_id", api.DeleteLesson)        
     v1.POST("/lesson/:lesson_id/question", api.CreateQuestion) 
+    v1.GET("/lessons/:lesson_id/questions", api.FetchQuestionsByLessonID)
+
 
 }
+
+func (api LessonAPI) FetchQuestionsByLessonID(c echo.Context) error {
+    lessonIDStr := c.Param("lesson_id")
+
+    // Converte lessonID para int
+    lessonID, err := strconv.Atoi(lessonIDStr)
+    if err != nil {
+        return c.JSON(http.StatusBadRequest, map[string]interface{}{"error": "Invalid lesson ID"})
+    }
+
+    // Chama o serviço para buscar as perguntas
+    questions, err := api.lessonService.FetchQuestionsByLessonID(c.Request().Context(), lessonID)
+    if err != nil {
+        return c.JSON(http.StatusInternalServerError, map[string]interface{}{"error": err.Error()})
+    }
+
+    return c.JSON(http.StatusOK, questions)
+}
+
 
 func (api LessonAPI) DeleteLesson(c echo.Context) error {
     lessonID := c.Param("lesson_id")

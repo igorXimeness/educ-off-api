@@ -14,6 +14,8 @@ type LessonRepository interface {
 	CreateLesson(context.Context, model.Lesson) (int, error)
 	DeleteLesson(context.Context, string) error 
 	CreateQuestion(context.Context, model.Question) (int, error)
+	FetchQuestionsByLessonID(ctx context.Context, lessonID int) ([]model.Question, error)
+
 }
 
 func NewLessonService(lessonRepository LessonRepository) LessonService {
@@ -21,6 +23,11 @@ func NewLessonService(lessonRepository LessonRepository) LessonService {
 		lessonRepository: lessonRepository,
 	}
 }
+
+func (l LessonService) FetchQuestionsByLessonID(ctx context.Context, lessonID int) ([]model.Question, error) {
+    return l.lessonRepository.FetchQuestionsByLessonID(ctx, lessonID)
+}
+
 
 func (l LessonService) DeleteLesson(ctx context.Context, lessonID string) error {
     return l.lessonRepository.DeleteLesson(ctx, lessonID)
