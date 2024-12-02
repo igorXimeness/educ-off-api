@@ -115,17 +115,14 @@ func (api LessonAPI) FetchLesson(c echo.Context) error {
 func (api LessonAPI) FetchPDF(c echo.Context) error {
     subjectName := c.Param("subject_name")
     
-    // Caminho para o diretório "assets" a partir do diretório de trabalho
     pdfPath := filepath.Join("assets", subjectName+".pdf")
     
-    // Verifica se o arquivo existe
     if _, err := os.Stat(pdfPath); err != nil {
         if os.IsNotExist(err) {
             return c.JSON(http.StatusNotFound, map[string]interface{}{
                 "error": "File not found: " + pdfPath,
             })
         }
-        // Retornar outros erros, caso ocorra algum problema inesperado
         return c.JSON(http.StatusInternalServerError, map[string]interface{}{
             "error": "Error checking file: " + err.Error(),
         })
@@ -133,6 +130,51 @@ func (api LessonAPI) FetchPDF(c echo.Context) error {
     
     // Retornando o PDF como resposta
     return c.File(pdfPath)
+}
+
+
+func (api LessonAPI) UploadPDF(c echo.Context) error {
+	file, err := c.FormFile("pdf")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"error": "Failed to read file: " + err.Error(),
+		})
+	}
+
+	if filepath.Ext(file.Filename) != ".pdf" {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"error": "Only PDF files are allowed.",
+		})
+	}
+
+	pdfPath := filepath.Join("assets", file.Filename)
+
+	src, err := file.Open()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"error": "Failed to open file: " + err.Error(),
+		})
+	}
+	defer src.Close()
+
+	dst, err := os.Create(pdfPath)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"error": "Failed to save file: " + err.Error(),
+		})
+	}
+	defer dst.Close()
+
+	if _, err = dst.ReadFrom(src); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"error": "Failed to write file: " + err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "File uploaded successfully",
+		"path":    pdfPath,
+	})
 }
 
 
